@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block title %} Demo Dashboard Login {% endblock %}
+
+{% block body_content %}
+<form method="post" action="{% url 'login' %}">
+<table>
+  {% csrf_token %}
+  <tr>
+    <td>用户：</td>
+    <td><input name="username" type="text" value="{{ username }}" /></td>
+  </tr>
+  <tr>
+    <td>密码：</td>
+    <td><input name="password" type="password" value="" /></td>
+  </tr>
+  <tr>
+    <td><input type="submit" value="登陆" /></td>
+    <td>{{ message }}</td>
+  </tr>
+</table>
+</form>
+{% endblock %}
