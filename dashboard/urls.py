@@ -12,8 +12,9 @@ urlpatterns = patterns('',
     # url(r'^blog/', include('blog.urls')),
 
     # url(r'^admin/', include(admin.site.urls)),
-    url(r'^auth/', include('dashboard_auth.urls')),
-    url(r'^$', 'dashboard.views.project', name='project'),
+    url(r'^auth/', include('dashboard_auth.urls', namespace="dashboard_auth")),
+    url(r'^project/$', 'dashboard.views.project', name='project'),
+    url(r'^keystone/get_tenant_list/$', 'dashboard.views.get_tenant_list', name='get_tenant_list'),
 #)
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

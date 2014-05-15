@@ -19,13 +19,13 @@ def login(request):
 
         result = authenticate(username=username, password=password)
 
-        if result[0] is True:
+        if result["result"] is True:
             request.session['username'] = username
             request.session['password'] = password
             return redirect(reverse("project"))
         else:
             return render(request, "auth/login.html",
-                          {'message':result[1], 'username':username})
+                          {'message':result["message"], 'username':username})
 
     return render(request, "auth/login.html")
 
@@ -34,4 +34,4 @@ def logout(request):
     """logout"""
     request.session.clear()
     request.session.clear_expired()
-    return redirect(reverse("login"))
+    return redirect(reverse("dashboard_auth:login"))

@@ -1,24 +1,91 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% load staticfiles %}
 
 {% block title %} {% endblock %}
 
-{% block body_content %}
-
-{% endblock %}
-
 {% block css %}
-<link href="{% static "themes/default/easyui.css" %}" rel="stylesheet" type="text/css">
-
 <style type="text/css">
 </style>
 {% endblock %}
 
 {% block js %}
-<script type="text/javascript" src="{% static "js/jquery.min.js" %}"></script>
-<script type="text/javascript" src="{% static "js/jquery.easyui.min.js" %}"></script>
 <script type="text/javascript">
+    var csrftoken;
+    $("#btn-logout").bind("click",function(){
+        location.href = "{% url "dashboard_auth:logout" %}"
+    });
+    
+    $("#btn-get-tanent").bind("click",function(){
+		$.ajax({
+			url:"{% url 'get_tenant_list'%}",
+			type:"POST",
+		 	data:{
+				 },
+			success:function( data ){
+                alert(data);
+			},
+			error:function(jqXHR, status, errorThrown ){
+				$.messager.alert('警告','请求失败！');
+			},
+		});	
+    });
+    
+    $(".btn-tenant-switch").bind("click",function(){
+        alert($(this).text());
+    });
+    
+    //获取csrftoken并设置ajax访问时csrftoken
+    $(document).ready(function() {
+        csrftoken = getCookie('csrftoken');
+        $.ajaxSetup({
+            crossDomain: false, // obviates need for sameOrigin test
+            beforeSend: function(xhr, settings) {
+                if (!csrfSafeMethod(settings.type)) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });	
+    });
+    
+
 </script>
 
+{% endblock %}
+
+{% block body_content %}
+<div class="easyui-layout" style="width:940px;height:700px;pandding:5px;">
+    <div data-options="region:'north'" style="height:30px;">
+        <div class="easyui-panel" >
+            <a href="#" class="easyui-linkbutton" data-options="plain:true">Dashboard Home</a>
+            <a id="btn-logout" href="{% url 'dashboard_auth:logout' %}" class="easyui-linkbutton" style="width:80px;float:right">Logout</a>
+            <a href="#" class="easyui-linkbutton" data-options="plain:true" style="float:right" >{{username}}</a>
+            <a href="javascript:void(0)" id="mb" class="easyui-menubutton" data-options="menu:'#tanent_list',iconCls:'icon-edit'" style="float:right;">{{current_tenant_name}}</a>
+            <div id="tanent_list">
+                {% for tenant_name in tenant_name_list %}
+                    <div class="btn-tenant-switch">
+                        {{tenant_name}}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div data-options="region:'south'" style="height:40px;text-align:center"><p>www.cloud-open.cn</p></div>
+    <div data-options="region:'west'" title="功能" style="width:200px;">
+        <div id="aa" class="easyui-accordion" style="height:570px;">
+        <div title="Keystone" data-options="selected:true" style="overflow:auto; padding:10px;">
+            <ol>
+                <li style="margin:5px;"><a id="btn-get-tanent" href="#" class="easyui-linkbutton">获取登陆用户tenant</a></li>
+            </ol>
+        </div>
+        <div title="Nova" style="padding:10px; overflow:auto;">
+        </div>
+        <div title="Neutron" style="padding:10px; overflow:auto;">
+        </div>
+    </div>
+    
+    </div>
+    <div data-options="region:'center',title:'功能Tab'"></div>
+</div>
 {% endblock %}

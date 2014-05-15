@@ -89,15 +89,3 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(ROOT_PATH, 'static/')
-print  STATIC_ROOT
-#STATICFILES_FINDERS = (
-#    'django.contrib.staticfiles.finders.FileSystemFinder',
-#    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-##    'django.contrib.staticfiles.finders.DefaultStorageFinder',
-#)
-#STATICFILES_DIRS = (
-    #"/home/special.polls.com/polls/static",
-    #"/home/polls.com/polls/static",
-    #"/opt/webfiles/common",
-    #"/home/cloudopen/luxy/demodashboard/dashboard/dashboard/statics",
-#)

@@ -1,16 +1,36 @@
+{% load staticfiles %}
+
 <!DOCTYPE html>
 <html>
 <head>
 	<meta charset="UTF-8">
     <title>{% block title %}Demo Dashboard{% endblock %}</title>
+    <link href="{% static "themes/default/easyui.css" %}" rel="stylesheet" type="text/css">
+    <link href="{% static "themes/icon.css" %}" rel="stylesheet" type="text/css">
+    <link href="{% static "css/base.css" %}" rel="stylesheet" type="text/css">
+    <style type="text/css">
+        body{text-align:center;}
+        #divcss5{margin:0 auto;border:0px solid #000;width:940px;height:auto}
+        ol{padding:0px; border:0px; margin:0px;}
+        li{list-style:none; padding:0px; border:0px; margin:0px;}
+    </style>
     {%block css%}{% endblock css%}
 </head>
 
 <body>
+    <div id="divcss5">
     {% block body_content %}
     {% endblock %}
+    </div>
 </body>
 
-{%block js%}{% endblock js%}
+
+<script type="text/javascript" src="{% static "js/jquery.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/jquery.easyui.min.js" %}"></script>
+<script type="text/javascript" src="{% static "locale/easyui-lang-zh_CN.js" %}"></script>
+<script type="text/javascript" src="{% static "js/dashboard-common.js" %}"></script>
+
+
+{%block js%}{% endblock %}
 
 </html>
