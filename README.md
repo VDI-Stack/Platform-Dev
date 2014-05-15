@@ -1,4 +1,4 @@
-Demo Dashboard
-==============
+Platform-Dev
+============
 
-It isused for learning openstack client api.
+VDI-Stack Management Platform Develop Code
