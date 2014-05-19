@@ -1,0 +1,44 @@
+
+<form id="form2" method="post">
+    {% csrf_token %}
+    <div>
+        <label for="name">名称：</label>
+        <input class="easyui-validatebox" type="text" name="name" data-options="required:true" style="witdh:250px;" />
+    </div>
+    <div>
+        <label for="image_id">镜像：</label>
+        <select class="easyui-combobox" name="image_id" style="width:200px;">
+            {% for image in images %}
+            <option value="{{image.id}}">{{ image.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label for="flavor_id">模板：</label>
+        <select class="easyui-combobox" name="flavor_id" style="width:200px">
+            {% for flavor in flavors %}
+            <option value="{{ flavor.id }}">{{ flavor.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <a id="btn-create-server" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add'">创建</a>
+    </div>
+    
+    <script type="text/javascript">
+        $('#form2').form({
+                url:'{% url 'create_server' %}',
+                onSubmit: function(){
+                    alert("yes");
+                },
+                success:function(data){
+                    alert(data)
+                }
+        });
+        // submit the form
+        $("#btn-create-server").bind("click",function(){
+            $('#form2').submit();
+        });
+        
+    </script>
+</form>

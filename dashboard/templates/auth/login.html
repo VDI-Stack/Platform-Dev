@@ -10,10 +10,11 @@
 
     $(document).ready(function(){
         message = '{{message}}';
+        redirect = '{{redirect}}';
         if( message != "" ){
             show_message_center(message);
         }
-        
+        //block to inline-block
         $(".panel").css("display","inline-block");
     });
 
@@ -28,11 +29,13 @@
         $.messager.show({
             title:'提示',
             msg:msg,
+            timeout:1000,
             showType:'fade',
             style:{
                 right:'',
                 top:100,
-            }
+            },
+            
         });
     }
     
@@ -45,6 +48,7 @@
     <div style="padding:10px 60px 20px 60px">
         <form id="form1" method="post" action="{% url 'dashboard_auth:login' %}">
             {% csrf_token %}
+            <input type="text" name="redirect-url" value="{{redirect}}" style="display:none" />
             <table cellpadding="5">
                 <tr>
                     <td>用户:</td>

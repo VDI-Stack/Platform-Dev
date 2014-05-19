@@ -13,9 +13,9 @@
 <script type="text/javascript">
     var csrftoken;
     $("#btn-logout").bind("click",function(){
-        location.href = "{% url "dashboard_auth:logout" %}"
+        location.href = "{% url "dashboard_auth:logout" %}";
     });
-    
+     
     $("#btn-get-tanent").bind("click",function(){
 		$.ajax({
 			url:"{% url 'get_tenant_list'%}",
@@ -23,7 +23,30 @@
 		 	data:{
 				 },
 			success:function( data ){
-                alert(data);
+                retval = $.parseJSON( data );
+                //alert(retval.retval);
+                //for( i=0; i<retval.data.length; i++ ){
+                //    alert(retval.data[i].id);
+                //}
+                // add a new tab panel
+                if( $('#main-function').tabs('exists','tenant-list') )
+                    ;
+                else{
+                    $('#main-function').tabs('add',{
+                        title:'tenant-list',
+                        content:'<table id="tenant-list"></table>',
+                        closable:true,
+                    });
+                }
+                
+                $('#tenant-list').datagrid({
+                    columns:[[
+                        {field:'name',title:'名称',width:100},
+                        {field:'id',title:'ID',width:400},
+                    ]],
+                    data:retval.data,
+                    singleSelect:true,
+                });
 			},
 			error:function(jqXHR, status, errorThrown ){
 				$.messager.alert('警告','请求失败！');
@@ -32,8 +55,100 @@
     });
     
     $(".btn-tenant-switch").bind("click",function(){
-        alert($(this).text());
+        tenant = $.trim($(this).text());
+        location.href = "{% url "project" %}?switch="+tenant;
     });
+    
+    $("#btn-set-password").bind("click",function(){
+        if( $('#main-function').tabs('exists','set-password') )
+            ;
+        else{
+            $('#main-function').tabs('add',{
+                title:'set-password',
+                content:'设置密码',
+                closable:true,
+            });
+        }
+    })
+    
+    $("#btn-get-flavors").bind("click",function(){
+		$.ajax({
+			url:"{% url 'get_flavor_list'%}",
+			type:"POST",
+		 	data:{
+				 },
+			success:function( data ){
+                retval = $.parseJSON( data );
+                // add a new tab panel
+                if( $('#main-function').tabs('exists','flavors-list') )
+                    $('#main-function').tabs('select','flavors-list');
+                else{
+                    $('#main-function').tabs('add',{
+                        title:'flavors-list',
+                        content:'<table id="nova-flavors"></table>',
+                        closable:true,
+                    });
+                }
+                
+                $('#nova-flavors').datagrid({
+                    columns:[[
+                        {field:'name',title:'名称',width:100},
+                        {field:'id',title:'ID',width:400},
+                    ]],
+                    data:retval.data,
+                    singleSelect:true,
+                });
+			},
+			error:function(jqXHR, status, errorThrown ){
+				$.messager.alert('警告','请求失败！');
+			},
+		});        
+    })
+
+    $("#btn-get-servers").bind("click",function(){
+		$.ajax({
+			url:"{% url 'get_server_list' %}",
+			type:"POST",
+		 	data:{
+				 },
+			success:function( data ){
+                retval = $.parseJSON( data );
+                // add a new tab panel
+                if( $('#main-function').tabs('exists','servers-list') )
+                    $('#main-function').tabs('select','servers-list');
+                else{
+                    $('#main-function').tabs('add',{
+                        title:'servers-list',
+                        content:'<table id="nova-servers"></table>',
+                        closable:true,
+                    });
+                }
+                
+                $('#nova-servers').datagrid({
+                    columns:[[
+                        {field:'name',title:'名称',width:100},
+                        {field:'id',title:'ID',width:400},
+                    ]],
+                    data:retval.data,
+                    singleSelect:true,
+                });
+			},
+			error:function(jqXHR, status, errorThrown ){
+				$.messager.alert('警告','请求失败'+status);
+			},
+		});        
+    })    
+    
+    $('#btn-create-server-dialog').bind("click",function(){
+    
+        $("#create-server-dialog").dialog({
+            title: 'create server',
+            close: false,
+            cache: false,
+            href: '{% url 'create_server' %}',
+            modal: true,
+        });
+    })
     
     //获取csrftoken并设置ajax访问时csrftoken
     $(document).ready(function() {
@@ -77,15 +192,25 @@
         <div title="Keystone" data-options="selected:true" style="overflow:auto; padding:10px;">
             <ol>
                 <li style="margin:5px;"><a id="btn-get-tanent" href="#" class="easyui-linkbutton">获取登陆用户tenant</a></li>
+                <li style="margin:5px;"><a id="btn-set-password" href="#" class="easyui-linkbutton">设置密码</a></li>
             </ol>
         </div>
         <div title="Nova" style="padding:10px; overflow:auto;">
+            <ol>
+                <li style="margin:5px;"><a id="btn-get-flavors" href="#" class="easyui-linkbutton">获取nova flavors</a></li>
+                <li style="margin:5px;"><a id="btn-get-servers" href="#" class="easyui-linkbutton">获取nova servers</a></li>
+                <li style="margin:5px;"><a id="btn-create-server-dialog" href="#" class="easyui-linkbutton">create nova server</a></li>
+            </ol>            
         </div>
         <div title="Neutron" style="padding:10px; overflow:auto;">
         </div>
     </div>
     
     </div>
-    <div data-options="region:'center',title:'功能Tab'"></div>
+    <div data-options="region:'center',title:'功能'">
+        <div id="main-function" class="easyui-tabs">
+        </div>
+    </div>
+    <div id="create-server-dialog" style="width:300px; height:200px;"></div>
 </div>
 {% endblock %}

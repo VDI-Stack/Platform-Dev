@@ -17,7 +17,10 @@ def authenticate(request=None, username=None, password=None,
     except Exception, e:
         message = e.message
         return {"result":False, "message":message}
-    return {"result":True, "message":message, "auth_ref":client.auth_ref}
+    return {"result":True,
+            "message":message,
+            "auth_ref":client.auth_ref,
+            "client":client}
 
 
 def authenticate_with_tenant(tenant_id=None,
