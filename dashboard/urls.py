@@ -17,7 +17,8 @@ urlpatterns = patterns('',
     url(r'^keystone/get_tenant_list/$', 'dashboard.views.get_tenant_list', name='get_tenant_list'),
     url(r'^nova/get_flavor_list/$', 'dashboard.views.get_flavor_list', name='get_flavor_list'),
     url(r'^nova/get_server_list/$', 'dashboard.views.get_server_list', name='get_server_list'),
-    url(r'^nova/create_server/$', 'dashboard.views.create_server', name='create_server'), 
+    url(r'^nova/create_server/$', 'dashboard.views.create_server', name='create_server'),
+    url(r'^nova/delete_server/$', 'dashboard.views.delete_server', name='delete_server'),
 #)
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

@@ -12,10 +12,12 @@
 {% block js %}
 <script type="text/javascript">
     var csrftoken;
+	//logout按钮
     $("#btn-logout").bind("click",function(){
-        location.href = "{% url "dashboard_auth:logout" %}";
+        location.href = '{% url "dashboard_auth:logout" %}';
     });
-     
+    
+	//获取tenant按钮
     $("#btn-get-tanent").bind("click",function(){
 		$.ajax({
 			url:"{% url 'get_tenant_list'%}",
@@ -54,9 +56,10 @@
 		});	
     });
     
+	//切换tenant
     $(".btn-tenant-switch").bind("click",function(){
         tenant = $.trim($(this).text());
-        location.href = "{% url "project" %}?switch="+tenant;
+        location.href = '{% url "project" %}?switch='+tenant;
     });
     
     $("#btn-set-password").bind("click",function(){
@@ -71,6 +74,7 @@
         }
     })
     
+	//获取flavor列表
     $("#btn-get-flavors").bind("click",function(){
 		$.ajax({
 			url:"{% url 'get_flavor_list'%}",
@@ -105,7 +109,53 @@
 		});        
     })
 
+	//获取server列表
     $("#btn-get-servers").bind("click",function(){
+		$.ajax({
+			url:"{% url 'get_server_list' %}",
+			type:"POST",
+		 	data:{
+				 },
+			success:function( data ){
+                retval = $.parseJSON( data );
+                // add a new tab panel
+                info = $("#server-tab-tmpl").html();
+				if( $('#main-function').tabs('exists','servers-list') )
+                    $('#main-function').tabs('select','servers-list');
+                else{
+                    $('#main-function').tabs('add',{
+                        title:'servers-list',
+                        content:info,
+                        closable:true,
+                    });
+					$('#tool_bar_server_btn_add').linkbutton({
+    					iconCls: 'icon-add'
+					});
+					$('#tool_bar_server_btn_del').linkbutton({
+    					iconCls: 'icon-remove'
+					});	
+                }
+                $('#nova-servers').datagrid({
+                    columns:[[
+						{field:'ck',checkbox:true},
+                        {field:'name',title:'名称',width:100},
+                        {field:'id',title:'ID',width:400},
+                    ]],
+                    data:retval.data,
+                    singleSelect:false,
+					checkOnSelect:true,
+					selectOnCheck:true,
+					toolbar: '#tool_bar_server',
+                });
+			},
+			error:function(jqXHR, status, errorThrown ){
+				$.messager.alert('警告','请求失败'+status);
+			},
+		});        
+    })
+	
+	//重新加载server list
+	function reload_server_list(){
 		$.ajax({
 			url:"{% url 'get_server_list' %}",
 			type:"POST",
@@ -123,35 +173,41 @@
                         closable:true,
                     });
                 }
-                
+
                 $('#nova-servers').datagrid({
                     columns:[[
+						{field:'ck',checkbox:true},
                         {field:'name',title:'名称',width:100},
                         {field:'id',title:'ID',width:400},
                     ]],
                     data:retval.data,
-                    singleSelect:true,
+                    singleSelect:false,
+					checkOnSelect:true,
+					selectOnCheck:true,
+					toolbar: '#tool_bar_server',
                 });
 			},
 			error:function(jqXHR, status, errorThrown ){
 				$.messager.alert('警告','请求失败'+status);
 			},
-		});        
-    })    
+		});  
+	}
     
-    $('#btn-create-server-dialog').bind("click",function(){
-    
+	//创建服务对话框
+    $('#btn-create-server-dialog').bind("click",function(){    
         $("#create-server-dialog").dialog({
             title: 'create server',
             close: false,
             cache: false,
-            href: '{% url 'create_server' %}',
+            href: '{% url "create_server" %}',
             modal: true,
         });
     })
     
-    //获取csrftoken并设置ajax访问时csrftoken
+    
     $(document).ready(function() {
+		
+		//获取csrftoken并设置ajax访问时csrftoken
         csrftoken = getCookie('csrftoken');
         $.ajaxSetup({
             crossDomain: false, // obviates need for sameOrigin test
@@ -163,8 +219,55 @@
         });	
     });
     
-
+	//工具按钮
+	function tool_bar_server_btn_add(){
+		$("#create-server-dialog").dialog({
+			title: 'create server',
+			close: false,
+			cache: false,
+			href: '{% url "create_server" %}',
+			modal: true,
+		});
+	}
+	function tool_bar_server_btn_del(){
+		var a = $("#nova-servers").datagrid("getChecked");
+		var list = [];
+		for (var i=0; i< a.length; i++){
+			list.push(a[i].id);
+		}
+		if (list.length == 0)
+			return ;
+		$.ajax({
+			url:'{% url "delete_server" %}',
+			type:'POST',
+			data:{
+				list:list,
+				},
+			success: function(data){
+				retval = $.parseJSON( data );
+				if(retval.retval == "success"){				
+					$.messager.alert('信息','删除成功');
+					reload_server_list();
+				}else{
+					$.messager.alert('错误','删除失败！'+retval.message);
+				}
+			},
+			error: function(jqXHR, status, errorThrown){
+				alert(status);
+			},
+		});	
+	}
+	
 </script>
+
+<script id="server-tab-tmpl" type="text/x-jquery-tmpl">
+<table id="nova-servers"></table>
+<div id="tool_bar_server" style="height:auto">
+	<a id="tool_bar_server_btn_add" href="#" onclick="tool_bar_server_btn_add()" >创建</a>
+    <a id="tool_bar_server_btn_del" href="#" onclick="tool_bar_server_btn_del()">删除</a>
+</div>
+</script>
+
 
 {% endblock %}
 
@@ -197,9 +300,9 @@
         </div>
         <div title="Nova" style="padding:10px; overflow:auto;">
             <ol>
-                <li style="margin:5px;"><a id="btn-get-flavors" href="#" class="easyui-linkbutton">获取nova flavors</a></li>
-                <li style="margin:5px;"><a id="btn-get-servers" href="#" class="easyui-linkbutton">获取nova servers</a></li>
-                <li style="margin:5px;"><a id="btn-create-server-dialog" href="#" class="easyui-linkbutton">create nova server</a></li>
+                <li style="margin:5px;"><a id="btn-get-flavors" href="#" class="easyui-linkbutton">nova flavors</a></li>
+                <li style="margin:5px;"><a id="btn-get-servers" href="#" class="easyui-linkbutton">nova servers</a></li>
+                <!--<li style="margin:5px;"><a id="btn-create-server-dialog" href="#" class="easyui-linkbutton">create nova server</a></li>-->
             </ol>            
         </div>
         <div title="Neutron" style="padding:10px; overflow:auto;">
@@ -212,5 +315,7 @@
         </div>
     </div>
     <div id="create-server-dialog" style="width:300px; height:200px;"></div>
+
 </div>
+
 {% endblock %}

@@ -177,6 +177,43 @@ def create_server(request):
             return HttpResponse("failed!"+result["message"])
         else:
             nova_c = result["client"]
-            nova_c.servers.create(name, image_id, flavor_id)
-
+            try:
+                nova_c.servers.create(name, image_id, flavor_id)
+                retval = {'retval':'success'}
+                return HttpResponse(json.dumps(retval, ensure_ascii=False))
+            except Exception, e:
+                retval = {'retval':'failed', 'message':e.message}
+                return HttpResponse(json.dumps(retval, ensure_ascii=False))
         return HttpResponse("failed!")
+
+@require_login
+def delete_server(request):
+    """delete nova server"""
+    if request.is_ajax() == True and request.method == "POST":
+
+        delete_servers = request.POST.getlist('list[]', None)
+        username = request.session.get("username", None)
+        password = request.session.get("password", None)
+        current_tenant_name = request.session.get("tenant_name", None)
+        result = nova_get_nova_client(username,
+                                 password,
+                                 current_tenant_name,
+                                 AUTH_URL)
+        if result["result"] == False:
+            return HttpResponse("failed!"+result["message"])
+        else:
+            nova_c = result["client"]
+            try:
+                servers = nova_c.servers.list()
+                for deleteid in delete_servers:
+                    for server in servers:
+                        if server.id == deleteid:
+                            print deleteid
+                            server.delete()
+                retval = {'retval':'success'}
+                return HttpResponse(json.dumps(retval, ensure_ascii=False))
+            except Exception, e:
+                retval = {'retval':'failed', 'message':e.message}
+                return HttpResponse(json.dumps(retval, ensure_ascii=False))
+        return HttpResponse("failed!")
+

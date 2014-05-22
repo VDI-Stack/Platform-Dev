@@ -27,12 +27,19 @@
     
     <script type="text/javascript">
         $('#form2').form({
-                url:'{% url 'create_server' %}',
+                url:'{% url "create_server" %}',
                 onSubmit: function(){
-                    alert("yes");
                 },
                 success:function(data){
-                    alert(data)
+                    retval = $.parseJSON( data );
+                    if(retval.retval == "success"){
+						reload_server_list();
+                        $.messager.alert('信息','创建成功');
+						$('#create-server-dialog').dialog("close");
+					}
+                    else{
+                        $.messager.alert('错误','创建失败！'+retval.message);
+                    }
                 }
         });
         // submit the form
