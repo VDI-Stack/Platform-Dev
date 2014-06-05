@@ -1,0 +1,35 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <!--<link rel="shortcut icon" href="../ico/favicon.png">-->
+    <title>{% block title %}Dashboard{% endblock %}</title>
+    
+    <link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet" type="text/css">
+    
+    {%block css%}
+    <!--拓展模板中加入需要的css文件-->
+    {% endblock css%}
+    
+</head>
+
+<body>
+    {% block body_content %}
+    {% endblock %}
+    
+    <script type="text/javascript" src="{% static "js/jquery-1.11.1.js" %}"></script>
+    <script type="text/javascript" src="{% static "bootstrap/js/bootstrap.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/dashboard-common.js" %}"></script>
+    
+    {% block js %}
+    <!--加入拓展模板中加入需要的js文件-->
+    {% endblock %}
+</body>
+
+</html>

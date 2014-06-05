@@ -3,25 +3,78 @@ from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.core.urlresolvers import reverse
 from dashboard_auth.views import require_login
-from dashboard_auth.utils import authenticate_with_tenant, authenticate
+from dashboard_auth.utils import authenticate
 from dashboard.api.keystone import get_tenant_list as keystone_get_tenant_list
 from dashboard.api.nova import get_nova_client as nova_get_nova_client
+from dashboard.api.nova import Server as NovaServer
+from dashboard import settings
+from dashboard.utils import get_default_panel_url
+from novaclient.client import Client as nova_client
 
 import json
 
-AUTH_URL= "http://192.168.2.10:5000/v2.0"
+AUTH_URL = settings.AUTH_URL
+AUTH_URL_V2 = settings.AUTH_URL_V2
 
 @require_login
-def project(request):
+def default(request):
+    return redirect(get_default_panel_url())
+
+@require_login
+def project(request, optype):
     """project request"""
     username = request.session.get("username", None)
-    password = request.session.get("password", None)
+    auth_ref = request.session.get("auth_ref", None)
+    current_project_name = request.session.get("project_name", None)
+    current_project_id = request.session.get("project_id", None)
 
-    auth_result = authenticate(username=username,
-                               password=password,
-                               auth_url=AUTH_URL)
-    tenant_list = keystone_get_tenant_list(AUTH_URL, username, password)
+    auth_result = authenticate(token=auth_ref['auth_token'],
+                            project_name=current_project_name,
+                            auth_url=AUTH_URL)
 
+    if auth_result['result'] == False:
+        return HttpResponse("failed!")
+    else:
+        c = auth_result['client']
+
+    project_list = c.projects.list(user=c.user_id)
+    if len(project_list) == 0:
+        return HttpResponse("user don't have project")
+    current_project_name = c.project_name
+
+
+    #TODO:if is unscoped!
+    request.session['project_name'] = c.project_name
+    request.session['project_id'] = c.project_id
+
+    switch = request.GET.get("switch", None)
+    if switch != None:
+        for index in project_list:
+            if switch == index.name:
+                auth_result = authenticate(token=auth_ref['auth_token'],
+                                           project_name=index.name,
+                                           auth_url=AUTH_URL)
+                if auth_result['result'] == False:
+                    print auth_result['message']
+                    return HttpResponse("failed!")
+                else:
+                    request.session['project_name'] = \
+                        auth_result['client'].project_name
+                    request.session['project_id'] = \
+                        auth_result['client'].project_id
+                    return redirect(get_default_panel_url())
+
+    return route_to(optype,
+                  request,
+                  "project.html",
+                  {
+                      "username":username,
+                      "project_list":project_list,
+                      "current_project_name":current_project_name,
+                  })
+
+
+"""
     # switch tenant
     switch = request.GET.get("switch", None)
     if switch != None:
@@ -73,6 +126,49 @@ def project(request):
                   {"username":username,
                    "tenant_name_list":tenant_name_list,
                    "current_tenant_name":current_tenant_name,})
+"""
+
+def test1(request, template_name, template_data):
+    return render(request, template_name, template_data)
+
+
+def overview(request, template_name, template_data):
+    return render(request, "overview.html", template_data)
+
+
+def desktop(request, template_name, template_data):
+    username = request.session.get("username", None)
+    password = request.session.get("password", None)
+    project_name = request.session.get("project_name", None)
+    auth_ref = request.session.get("auth_ref", None)
+    try:
+        c = nova_client(3, username, password,
+                        project_name, AUTH_URL_V2)
+    except Exception,e:
+        return HttpResponse(e.msg)
+
+    servers = []
+    for s in c.servers.list():
+        servers.append(NovaServer(s, auth_ref, c))
+    template_data['servers'] = servers
+    return render(request, "desktop.html", template_data)
+
+
+def route_to(optype, request, template_name, template_data):
+    template_data['optype'] = optype
+    return {
+        'test':test1,
+        'overview':overview,
+        'desktop':desktop,
+    }[optype](request, template_name, template_data)
+
+
+def settings(request):
+    return HttpResponse("Settings")
+
+
+def helps(request):
+    return HttpResponse("Helps")
 
 
 @require_login
@@ -114,6 +210,7 @@ def get_flavor_list(request):
             return HttpResponse(json.dumps(retval, ensure_ascii=False))
     return HttpResponse("failed!")
 
+
 @require_login
 def get_server_list(request):
     """get nova server list"""
@@ -135,6 +232,7 @@ def get_server_list(request):
             retval = {'retval':'success','data':servers}
             return HttpResponse(json.dumps(retval, ensure_ascii=False))
     return HttpResponse("failed!")
+
 
 @require_login
 def create_server(request):

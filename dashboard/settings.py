@@ -53,11 +53,18 @@ ROOT_URLCONF = 'dashboard.urls'
 WSGI_APPLICATION = 'dashboard.wsgi.application'
 
 
-AUTHENTICATION_BACKENDS = ('openstack_auth.backend.KeystoneBackend',)
+#AUTHENTICATION_BACKENDS = ('openstack_auth.backend.KeystoneBackend',)
 OPENSTACK_KEYSTONE_URL = "http://192.168.2.10:5000/v2.0"
 
 TEMPLATE_DIRS = (
-    os.path.join(ROOT_PATH, 'templates'),
+    os.path.join(BASE_DIR, 'templates'),
+    #"/home/cloudopen/luxy/demodashboard/dashboard/templates",
+)
+
+# template loader
+TEMPLATE_LOADERS = (
+    'django.template.loaders.filesystem.Loader',
+    #'django.template.loaders.app_directories.Loader'
 )
 
 # Database
@@ -87,5 +94,18 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
+STATICFILES_FINDERS = (
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+)
+
+STATICFILES_DIRS = (
+    #"/home/cloudopen/luxy/demodashboard/dashboard/static",
+    os.path.join(BASE_DIR, 'static'),
+)
+
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(ROOT_PATH, 'static/')
+#STATIC_ROOT = "/home/cloudopen/luxy/demodashboard/dashboard/static"
+
+AUTH_URL = "http://192.168.2.10:5000/v3"
+AUTH_URL_V2 = "http://192.168.2.10:5000/v2.0"
