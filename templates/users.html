@@ -1,0 +1,93 @@
+<link href="../static/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+{% extends "project.html" %}
+
+{% block main_content %}
+<h1 class="page-header">用户管理</h1>
+<div class="table-responsive">
+	<form id="form1" name="form1" >
+	<table class="table table-hover">
+  	<thead>
+    	<tr>
+      	<th colspan="2">
+        	<h3>用户列表</h3>
+        </th>
+        <th colspan="3">
+        	<div class="btn-group pull-right" style="margin-bottom:10px;">
+          	<a id="btn-user-add" class="btn btn-success" data-toggle="modal" href="{% url 'users_create_user' %}" data-target="#user-create-modal"><span class="glyphicon glyphicon-plus"> </span></a>
+          	<a id="btn-user-start" class="btn btn-primary" href="#"><span class="glyphicon glyphicon-play"> </span></a>
+          	<a id="btn-user-pause" class="btn btn-warning" href="#"><span class="glyphicon glyphicon-pause"> </span></a>
+            <a id="btn-user-stop" class="btn btn-danger" href="#"><span class="glyphicon glyphicon-minus"> </span></a>
+        	</div>
+        </th>
+      </tr>
+      <tr>
+      	<th class="multi_select_column"><input id="selectusers" name="selectusers" type="checkbox" class="table-row-multi-select"></th>
+      	<th>用户名</th>
+        <th>用户id</th>
+        <th>邮箱</th>
+        <th>激活</th>
+      </tr>
+    </thead>
+    <tbody id="selectbody">
+    	{% for user in users %}
+    	<tr>
+      	<th class="multi_select_column"><input id="selectuser" name="selectuser" type="checkbox" class="table-row-multi-select" value="{{user.id}}"></th>
+        <td>{{ user.name }}</td>
+        <td>{{ user.id }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.enabled }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </form>
+</div>
+
+<div class="modal fade" id="user-create-modal" tabindex="-1" role="dialog" aria-labelledby="createUserLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      
+    </div>
+  </div>
+</div>
+
+<div id="testmodal">
+</div>
+{% endblock %}
+
+{% block main_js %}
+<script type="text/javascript">
+$("#selectusers").click(function(e) {
+	if ($("#selectusers")[0].checked){
+		$("#selectbody .table-row-multi-select").each(
+		function(index){
+			this.checked = true;
+		})
+	}else{
+		$("#selectbody .table-row-multi-select").each(
+			function(index){
+				this.checked = false;
+		})	
+	}  
+});
+
+
+$("#btn-user-stop").click( function(){
+		$.ajax({
+		url:"{% url 'users_delete_user'%}",
+		type:"POST",
+		dataType:"json",
+		data:$('#form1').serialize(),
+		success: function(data){ 
+			//alert(data.retval+data.data);
+			//$("#user-create-modal").modal('hide');
+			window.location.reload();
+		},
+		error: function (jqXHR, textStatus, errorThrown ){
+			alert(textStatus)
+		},
+	});
+});
+
+</script>
+{% endblock %}

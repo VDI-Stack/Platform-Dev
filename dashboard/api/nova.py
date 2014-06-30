@@ -111,7 +111,7 @@ class Server(object):
                 return "On"
             else:
                 return "Off"
-        except Exception,e:
+        except Exception, e:
             print e.message
             pass
         try:

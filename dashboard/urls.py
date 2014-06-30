@@ -15,8 +15,29 @@ urlpatterns = patterns('',
     url(r'^auth/', include('dashboard_auth.urls', namespace="dashboard_auth")),
     url(r'^project/(?P<optype>\w+)/$', 'dashboard.views.project', name='project'),
     url(r'^project/$', 'dashboard.views.default', name='default'),
-    url(r'^settings/$', 'dashboard.views.settings', name='settings'),
+    url(r'^settings/$', 'dashboard.views.dashboard_settings', name='settings'),
     url(r'^helps/$', 'dashboard.views.helps', name='helps'),
+
+    # desktop
+    url(r'^desktop/create_server/$', 'dashboard.views.desktop_create_server',
+        name='desktop_create_server'),
+    url(r'^desktop/delete_server/$', 'dashboard.views.desktop_delete_server',
+        name='desktop_delete_server'),
+
+    #users
+    url(r'^users/create_user/$', 'dashboard.views.users_create_user',
+        name='users_create_user'),
+    url(r'^users/active_user/$', 'dashboard.views.users_active_user',
+        name='users_active_user'),
+    url(r'^users/delete_user/$', 'dashboard.views.users_delete_user',
+        name='users_delete_user'),
+
+    #tenants
+    url(r'^tenants/create_tenant/$', 'dashboard.views.tenants_create_tenant',
+        name='tenants_create_tenant'),
+    url(r'^tenants/delete_tenant/$', 'dashboard.views.tenants_delete_tenant',
+        name='tenants_delete_tenant'),
+
     #url(r'^keystone/get_tenant_list/$', 'dashboard.views.get_tenant_list', name='get_tenant_list'),
     #url(r'^nova/get_flavor_list/$', 'dashboard.views.get_flavor_list', name='get_flavor_list'),
     #url(r'^nova/get_server_list/$', 'dashboard.views.get_server_list', name='get_server_list'),

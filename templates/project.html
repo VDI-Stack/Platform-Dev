@@ -61,16 +61,32 @@
 		margin-top: 0;
 	}	
 </style>
+  {% block main_css %}
+  {% endblock %}
 {% endblock %}
 
 {% block js %}
 <script type="text/javascript">
-    
+    var csrftoken;
+		//获取csrftoken并设置ajax访问时csrftoken
+    csrftoken = getCookie('csrftoken');
+		$.ajaxSetup({
+				crossDomain: false, // obviates need for sameOrigin test
+				beforeSend: function(xhr, settings) {
+						if (!csrfSafeMethod(settings.type)) {
+								xhr.setRequestHeader("X-CSRFToken", csrftoken);
+						}
+				}
+		});			
 </script>
 
 <script id="server-tab-tmpl" type="text/x-jquery-tmpl">
 
 </script>
+
+	{% block main_js %}
+	{% endblock main_js %}
+
 {% endblock %}
 
 
@@ -105,7 +121,7 @@
               	<li><a href="{% url 'dashboard_auth:logout' %}">注销</a></li>
               </ul>
             </li>
-          	<li><a href="{% url 'settings' %}"><i class="glyphicon glyphicon-cog"></i> 设置</a></li>
+          	<li><a href="{% url 'settings' %}"><span class="glyphicon glyphicon-cog"></span> 设置</a></li>
             <li><a href="{% url 'helps' %}"><span class="glyphicon glyphicon-user"></span> 帮助</a></li>
           </ul>
 <!--          <form class="navbar-form navbar-right">
@@ -125,6 +141,11 @@
        		<ul class="nav nav-sidebar">
         		<li {% ifequal optype 'overview' %} class="active" {% endifequal %} ><a href="{% url 'project' 'overview' %}">概况</a></li>
             <li {% ifequal optype 'desktop' %} class="active" {% endifequal %} ><a href="{% url 'project' 'desktop' %}">云桌面</a></li>
+            {% ifequal username 'admin' %}
+            <li {% ifequal optype 'users' %} class="active" {% endifequal %} ><a href="{% url 'project' 'users' %}">用户管理</a></li>				{% endifequal %}
+            
+            {% ifequal username 'admin' %}
+            <li {% ifequal optype 'tenants' %} class="active" {% endifequal %} ><a href="{% url 'project' 'tenants' %}">项目管理</a></li>				{% endifequal %}            
           </ul>
         </div>
     		<!--sidebar  end-->

@@ -1,0 +1,91 @@
+<link href="../static/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+{% extends "project.html" %}
+
+{% block main_content %}
+<h1 class="page-header">专案管理</h1>
+<div class="table-responsive">
+	<form id="form1" name="form1" >
+	<table class="table table-hover">
+  	<thead>
+    	<tr>
+      	<th colspan="2">
+        	<h3>专案列表</h3>
+        </th>
+        <th colspan="2">
+        	<div class="btn-group pull-right" style="margin-bottom:10px;">
+          	<a id="btn-tenant-add" class="btn btn-success" data-toggle="modal" href="{% url 'tenants_create_tenant' %}" data-target="#tenant-create-modal"><span class="glyphicon glyphicon-plus"> </span></a>
+          	<a id="btn-tenant-start" class="btn btn-primary" href="#"><span class="glyphicon glyphicon-play"> </span></a>
+            <a id="btn-tenant-pause" class="btn btn-warning" href="#"><span class="glyphicon glyphicon-pause"> </span></a>
+            <a id="btn-tenant-stop" class="btn btn-danger" href="#"><span class="glyphicon glyphicon-minus"> </span></a>
+        	</div>
+        </th>
+      </tr>
+      <tr>
+      	<th class="multi_select_column"><input id="selectusers" name="selectusers" type="checkbox" class="table-row-multi-select" ></th>
+      	<th>专案名</th>
+        <th>专案id</th>
+      </tr>
+    </thead>
+    <tbody id="selectbody">
+    	{% for tenant in tenants %}
+    	<tr>
+      	<th class="multi_select_column"><input name="selectuser" type="checkbox" class="table-row-multi-select" value="{{tenant.id}}"></th>
+      <td>{{ tenant.name }}</td>
+        <td>{{ tenant.id }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </form>
+</div>
+
+<div class="modal fade" id="tenant-create-modal" tabindex="-1" role="dialog" aria-labelledby="createTenantLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      
+    </div>
+  </div>&nbsp;
+</div>
+
+{% endblock %}
+
+{% block main_js %}
+<script type="text/javascript">
+$("#selectusers").click(function(e) {
+	if ($("#selectusers")[0].checked){
+		$("#selectbody .table-row-multi-select").each(
+		function(index){
+			this.checked = true;
+		})
+	}else{
+		$("#selectbody .table-row-multi-select").each(
+			function(index){
+				this.checked = false;
+		})	
+	}  
+});
+
+$("#btn-tenant-stop").click( function(){
+		$.ajax({
+		url:"{% url 'tenants_delete_tenant'%}",
+		type:"POST",
+		dataType:"json",
+		data:$('#form1').serialize(),
+		success: function(data){ 
+			//alert(data.retval+data.data);
+			//$("#user-create-modal").modal('hide');
+			window.location.reload();
+		},
+		error: function (jqXHR, textStatus, errorThrown ){
+			alert(textStatus)
+		},
+	});
+});
+
+function tenant_update(){
+	
+}
+
+
+</script>
+{% endblock %}

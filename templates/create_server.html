@@ -1,51 +1,80 @@
+<div class="modal-header">
+  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+  <h4 class="modal-title" id="createServerLabel">创建新桌面</h4>
+</div>
 
-<form id="form2" method="post">
-    {% csrf_token %}
-    <div>
-        <label for="name">名称：</label>
-        <input class="easyui-validatebox" type="text" name="name" data-options="required:true" style="witdh:250px;" />
+<div class="modal-body">
+  <form class="form-horizontal" role="form" id="from1">
+    <div class="form-group">
+      <label for="inputServerName" class="col-sm-3 control-label">名称：</label>
+      <div class="col-sm-9">
+        <input name="inputServerName" type="text" class="form-control" id="inputServerName" placeholder="名称"/>
+      </div>
     </div>
-    <div>
-        <label for="image_id">镜像：</label>
-        <select class="easyui-combobox" name="image_id" style="width:200px;">
-            {% for image in images %}
-            <option value="{{image.id}}">{{ image.name }}</option>
-            {% endfor %}
-        </select>
+    <div class="form-group">
+      <label for="inputServerFlavor" class="col-sm-3 control-label">类型：</label>
+      <div class="col-sm-9">
+       	<select name="inputServerFlavor" id="inputServerFlavor" class="form-control" placeholder="类型">
+					{% for flavor in flavors %}
+        	<option value="{{flavor.id}}">{{flavor.name}}</option>
+        	{% endfor %}
+      	</select>
+      </div>
     </div>
-    <div>
-        <label for="flavor_id">模板：</label>
-        <select class="easyui-combobox" name="flavor_id" style="width:200px">
-            {% for flavor in flavors %}
-            <option value="{{ flavor.id }}">{{ flavor.name }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div>
-        <a id="btn-create-server" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add'">创建</a>
+    <div class="form-group">
+    	<label for="inputServerCount" class="col-sm-3 control-label">数量：</label>
+      <div class="col-sm-9">
+    		<input name="inputServerCount" type="number" id="inputServerCount" min="1" value="1" data-original-title="" class="form-control">
+    	</div>
     </div>
     
-    <script type="text/javascript">
-        $('#form2').form({
-                url:'{% url "create_server" %}',
-                onSubmit: function(){
-                },
-                success:function(data){
-                    retval = $.parseJSON( data );
-                    if(retval.retval == "success"){
-						reload_server_list();
-                        $.messager.alert('信息','创建成功');
-						$('#create-server-dialog').dialog("close");
-					}
-                    else{
-                        $.messager.alert('错误','创建失败！'+retval.message);
-                    }
-                }
-        });
-        // submit the form
-        $("#btn-create-server").bind("click",function(){
-            $('#form2').submit();
-        });
-        
-    </script>
-</form>
+    
+    <div id="divServerBootType" class="form-group">
+    	<label for="inputServerBootType" class="col-sm-3 control-label">启动方式：</label>
+      <div class="col-sm-9	">
+      	<select name="inputServerBootType" id="inputServerBootType" class="form-control">
+        	<option value="image" selected="selected">boot from image</option>
+          <option value="snapshot">boot from snapshot</option>
+          <option value="volume">boot from volume</option>
+          <option value="image-volume">boot from image(create new volume)</option>
+          <option value="image-volume">boot from volume snapshot(create new volume)</option>
+        </select>
+      </div>
+    </div>
+    
+    <div id="divServerImage" class="form-group" style="display:block">
+    	<label for="inputServerImage" class="col-sm-3 control-label">启动使用映像：</label>
+      <div class="col-sm-9">
+      	<select name="inputServerImage" id="inputServerImage" class="form-control" placeholder="映像">
+        	{% for image in images %}
+          <option value="{{image.id}}">{{image.name}}</option>
+          {% endfor%}
+        </select>
+      </div>
+    </div>
+    
+  </form>
+</div>
+
+
+<div class="modal-footer">
+  <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+  <button id="btnCreateServer" type="button" class="btn btn-primary">创建</button>
+</div>
+
+<script type="text/javascript">
+$("#btnCreateServer").click(function(e) {
+  $.ajax({
+		url:"{% url 'desktop_create_server'%}",
+		type:"POST",
+		dataType:"json",
+		data:$('#from1').serialize(),
+		success: function(data){ 
+			alert(data.retval+data.data);
+		},
+		error: function (jqXHR, textStatus, errorThrown ){
+			alert(textStatus)
+		},
+	});
+});
+</script>

@@ -1,4 +1,5 @@
-﻿from django.shortcuts import render
+﻿#-*- coding:utf-8 -*-
+from django.shortcuts import render
 from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.core.urlresolvers import reverse
@@ -9,7 +10,10 @@ from dashboard.api.nova import get_nova_client as nova_get_nova_client
 from dashboard.api.nova import Server as NovaServer
 from dashboard import settings
 from dashboard.utils import get_default_panel_url
+from dashboard.utils import nova_create_server
 from novaclient.client import Client as nova_client
+from keystoneclient.v2_0 import Client as KeystoneClientV2
+from keystoneclient.v2_0 import Client as keystone_client
 
 import json
 
@@ -33,7 +37,8 @@ def project(request, optype):
                             auth_url=AUTH_URL)
 
     if auth_result['result'] == False:
-        return HttpResponse("failed!")
+        print ("failed! project authenticate!"+auth_result['message'])
+        return redirect(reverse('dashboard_auth:login'))
     else:
         c = auth_result['client']
 
@@ -71,72 +76,22 @@ def project(request, optype):
                       "username":username,
                       "project_list":project_list,
                       "current_project_name":current_project_name,
+                      "keystone_client":c,
                   })
 
 
-"""
-    # switch tenant
-    switch = request.GET.get("switch", None)
-    if switch != None:
-        for tenant in tenant_list:
-            if switch == tenant.name:
-                request.session["tenant_name"] = tenant.name
-                request.session["tenant_id"] = tenant.id
-                return redirect(reverse("project"))
-
-    # auth default tenant
-    current_tenant_name = request.session.get("tenant_name", None)
-    current_tenant_id = request.session.get("tenant_id", None)
-    if current_tenant_name == None:
-        for tenant in tenant_list:
-            result = authenticate_with_tenant(
-                tenant_id=tenant.id,
-                token=auth_result["auth_ref"].auth_token,
-                auth_url=AUTH_URL)
-            if result["result"] == True:
-                current_tenant_name = tenant.name
-                current_tenant_id = tenant.id
-                break
-        if current_tenant_id == None:
-            return render(request, "auth/login.html",
-                          {"message":"user don't have tenants",
-                           'username':username})
-    else:
-        result = authenticate_with_tenant(
-            tenant_id=current_tenant_id,
-            token=auth_result["auth_ref"].auth_token,
-            auth_url=AUTH_URL)
-
-    if result["result"] == True:
-        request.session["tenant_id"] = current_tenant_id
-        request.session["tenant_name"] = current_tenant_name
-
-    # get
-    tenant_name_list = []
-    for tenant in tenant_list:
-        tenant_name_list.append(tenant.name)
-
-    #nova
-    nova_c = nova_get_nova_client(username,
-                             password,
-                             current_tenant_name,
-                             AUTH_URL)
-
-    return render(request, "project.html",
-                  {"username":username,
-                   "tenant_name_list":tenant_name_list,
-                   "current_tenant_name":current_tenant_name,})
-"""
 
 def test1(request, template_name, template_data):
     return render(request, template_name, template_data)
 
 
 def overview(request, template_name, template_data):
+    """overview页面"""
     return render(request, "overview.html", template_data)
 
 
 def desktop(request, template_name, template_data):
+    """云桌面的内容的函数"""
     username = request.session.get("username", None)
     password = request.session.get("password", None)
     project_name = request.session.get("project_name", None)
@@ -144,7 +99,7 @@ def desktop(request, template_name, template_data):
     try:
         c = nova_client(3, username, password,
                         project_name, AUTH_URL_V2)
-    except Exception,e:
+    except Exception, e:
         return HttpResponse(e.msg)
 
     servers = []
@@ -154,37 +109,316 @@ def desktop(request, template_name, template_data):
     return render(request, "desktop.html", template_data)
 
 
+def manage_users(request, template_name, template_data):
+    username = request.session.get("username", None)
+    password = request.session.get("password", None)
+    project_name = request.session.get("project_name", None)
+    auth_ref = request.session.get("auth_ref", None)
+
+    try:
+        keystone_c = template_data['keystone_client']
+    except Exception, e:
+        print e.message
+        return HttpResponse("failed get keystone client in template_data!")
+    users = keystone_c.users.list()
+    #users.sort(lambda p1, p2: cmp(p1.name, p2.name))
+
+    template_data['users'] = users
+
+    return render(request, "users.html", template_data)
+
+
+def manage_tenants(request, template_name, template_data):
+    """tenants 管理"""
+    username = request.session.get("username", None)
+    password = request.session.get("password", None)
+    project_name = request.session.get("project_name", None)
+    auth_ref = request.session.get("auth_ref", None)
+
+    try:
+        keystone_client_1 = template_data['keystone_client']
+    except Exception, e:
+        print e.message
+        return HttpResponse("failed get keystone client in template_data!")
+
+    tenants = []
+    try:
+        for tenant in keystone_client_1.projects.list():
+            tenants.append({"id":tenant.id, "name":tenant.name})
+    except Exception, e:
+        print e.message
+        return HttpResponse("failed! " + e.message)
+    #print tenants
+    template_data['tenants'] = tenants
+
+    return render(request, "tenants.html", template_data)
+
 def route_to(optype, request, template_name, template_data):
+    """对于不同的路径进行不同的函数调用"""
     template_data['optype'] = optype
     return {
         'test':test1,
         'overview':overview,
         'desktop':desktop,
+        'users':manage_users,
+        'tenants':manage_tenants,
     }[optype](request, template_name, template_data)
 
 
-def settings(request):
+def dashboard_settings(request):
+    """settings"""
     return HttpResponse("Settings")
 
 
 def helps(request):
+    """helps"""
     return HttpResponse("Helps")
 
 
+@require_login
+def desktop_create_server(request):
+    """创建虚拟机"""
+    username = request.session.get("username", None)
+    password = request.session.get("password", None)
+    project_name = request.session.get("project_name", None)
+    auth_ref = request.session.get("auth_ref", None)
+    try:
+        c = nova_client(2, username, password,
+                        project_name, AUTH_URL_V2)
+    except Exception, e:
+        # 返回错误对话框，点击后跳转到登陆
+        print e.msg
+        return HttpResponse(e.msg)
+
+    if request.method == 'POST':
+        print request.POST.get('inputServerName', None)
+        print request.POST.get('inputServerFlavor', None)
+        print request.POST.get('inputServerCount', 0)
+        print request.POST.get('inputServerBootType', None)
+        print request.POST.get('inputServerImage', None)
+
+        res = nova_create_server(request, c)
+        if res['result'] == True:
+            retval = {'retval':'success', 'data':'ok'}
+        else:
+            retval = {'retval':'failed', 'data':'failed'}
+        return HttpResponse(json.dumps(retval, ensure_ascii=False))
+
+
+    flavors = []
+    for flavor in c.flavors.list():
+        flavors.append({
+            'name':flavor.name,
+            'id':flavor.id
+        })
+
+    images = []
+    for image in c.images.list():
+        images.append({
+            'name':image.name,
+            'id':image.id
+        })
+
+    return render(request,
+                  "create_server.html",
+                  {
+                      'flavors':flavors,
+                      'images':images,
+                  })
+
+
+@require_login
+def desktop_delete_server(request):
+    print "desktop delete server"
+    if request.method == "POST":
+
+        username = request.session.get("username", None)
+        password = request.session.get("password", None)
+        project_name = request.session.get("project_name", None)
+        auth_ref = request.session.get("auth_ref", None)
+        delete_server_list = request.POST.getlist("selectuser")
+        print delete_server_list
+        try:
+            c = nova_client(2, username, password,
+                             project_name, AUTH_URL_V2)
+            #c.servers.delete()
+
+        except Exception, e:
+            print e.message
+            pass
+
+    retval = {'retval':'success', 'data':'ok'}
+
+    return HttpResponse(json.dumps(retval, ensure_ascii=False))
+
+
+@require_login
+def users_create_user(request):
+    """创建用户"""
+    if request.method == "POST":
+        input_name = request.POST.get('inputName', None)
+        input_email = request.POST.get('inputEmail', None)
+        input_tenant = request.POST.get('inputTenant', None)
+
+        auth_ref = request.session.get('auth_ref', None)
+        username = request.session.get('username', None)
+        password = request.session.get('password', None)
+        current_project_name = request.session.get('project_name', None)
+
+        try:
+            keystone_client_1 = KeystoneClientV2(username=username,
+                                               password=password,
+                                               tenant_name=current_project_name,
+                                               auth_url=AUTH_URL_V2)
+            user_manager_1 = keystone_client_1.users
+            user1 = user_manager_1.create(name=input_name,
+                                  password="123456",
+                                  tenant_id=input_tenant,
+                                  email=input_email)
+            retval = {'retval':'success', 'data':'ok'}
+        except Exception, e:
+            retval = {'retval':'failed', 'data':'create user failed'}
+            print e.message
+
+
+        return HttpResponse(json.dumps(retval, ensure_ascii=False))
+
+    elif request.method == "GET":
+        auth_ref = request.session.get('auth_ref', None)
+        current_project_name = request.session.get('project_name', None)
+
+        auth_result = authenticate(token=auth_ref['auth_token'],
+                            project_name=current_project_name,
+                            auth_url=AUTH_URL)
+        tenants = []
+        if auth_result['result'] == True:
+            keystone_client_1 = auth_result['client']
+            tenant_manager_1 = keystone_client_1.projects
+            for tenant in tenant_manager_1.list():
+                tenants.append({"id":tenant.id, "name":tenant.name})
+            return render(request,
+                          'create_user.html',
+                          {
+                              'tenants':tenants,
+                          })
+        else:
+            return render(request,
+                          'create_user.html',
+                          {
+                          })
+
+    else:
+        pass
+    return render(request,
+                  'create_user.html',
+                  {
+                  })
+
+
+@require_login
+def users_delete_user(request):
+    """delete user"""
+    if request.method == "POST":
+        username = request.session.get("username", None)
+        password = request.session.get("password", None)
+        current_project_name = \
+            request.session.get("project_name", None)
+        keystone_client_1 = \
+            keystone_client(username=username,
+                            password=password,
+                            tenant_name=current_project_name,
+                            auth_url=AUTH_URL_V2)
+        for user_id in request.POST.getlist("selectuser", None):
+            #print user_id
+            keystone_client_1.users.delete(user_id)
+
+        retval = {'retval':'success', 'data':'ok'}
+        return HttpResponse(json.dumps(retval, ensure_ascii=False))
+
+@require_login
+def users_active_user(request):
+    """激活用户"""
+    if request.method == "POST":
+        print request.POST.getlist('selectusers', None)
+        retval = {'retval':'success', 'data':"ok"}
+        return HttpResponse(json.dumps(retval, ensure_ascii=False))
+    return HttpResponse("not support")
+
+
+###
 @require_login
 def get_tenant_list(request):
     """get tenant list"""
     if request.is_ajax() == True and request.method == "POST":
         username = request.session.get("username", None)
         password = request.session.get("password", None)
+
+
+
         tenant_list = keystone_get_tenant_list(AUTH_URL, username, password)
         tenants = []
         for tenant in tenant_list:
+
             tenants.append({'name':tenant.name, 'id':tenant.id})
 
-        retval = {'retval':'success','data':tenants}
+        retval = {'retval':'success', 'data':tenants}
         return HttpResponse(json.dumps(retval, ensure_ascii=False))
     return HttpResponse("failed!")
+
+
+@require_login
+def tenants_create_tenant(request):
+    if request.method == "GET":
+        return render(request,
+                      'create_tenant.html',
+                      {
+                      })
+    elif request.method == "POST":
+        auth_ref = request.session.get('auth_ref', None)
+        username = request.session.get('username', None)
+        password = request.session.get('password', None)
+        current_project_name = request.session.get('project_name', None)
+
+        input_name = request.POST.get('inputName', None)
+        input_description = request.POST.get('inputDescription', None)
+
+        try:
+            keystone_client_1 = \
+                    keystone_client(username=username,
+                                    password=password,
+                                    tenant_name=current_project_name,
+                                    auth_url=AUTH_URL_V2)
+            tenant_1 = keystone_client_1.tenants.create(input_name,
+                                             input_description,
+                                             True)
+        except Exception, e:
+            print e.message
+            retval = {'retval':'failed', 'data':'failed'}
+
+        retval = {'retval':'success', 'data':'ok'}
+        return HttpResponse(json.dumps(retval, ensure_ascii=False))
+    else:
+        return HttpResponse("not support other method")
+
+
+@require_login
+def tenants_delete_tenant(request):
+    """delete tenant """
+    if request.method == "POST":
+        username = request.session.get("username", None)
+        password = request.session.get("password", None)
+        current_project_name = \
+            request.session.get("project_name", None)
+        keystone_client_1 = \
+            keystone_client(username=username,
+                            password=password,
+                            tenant_name=current_project_name,
+                            auth_url=AUTH_URL_V2)
+        for tenant_id in request.POST.getlist("selectuser", None):
+            keystone_client_1.tenants.delete(tenant_id)
+
+        retval = {'retval':'success', 'data':'ok'}
+        return HttpResponse(json.dumps(retval, ensure_ascii=False))
 
 
 @require_login
@@ -228,8 +462,8 @@ def get_server_list(request):
             nova_c = result["client"]
             servers = []
             for server in nova_c.servers.list():
-                servers.append({'name':server.name,'id':server.id})
-            retval = {'retval':'success','data':servers}
+                servers.append({'name':server.name, 'id':server.id})
+            retval = {'retval':'success', 'data':servers}
             return HttpResponse(json.dumps(retval, ensure_ascii=False))
     return HttpResponse("failed!")
 
@@ -283,6 +517,7 @@ def create_server(request):
                 retval = {'retval':'failed', 'message':e.message}
                 return HttpResponse(json.dumps(retval, ensure_ascii=False))
         return HttpResponse("failed!")
+
 
 @require_login
 def delete_server(request):
