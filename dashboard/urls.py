@@ -1,20 +1,40 @@
+# -*- coding:utf-8 -*-
 from django.conf.urls import patterns, include, url
-from django.conf import settings
-from django.conf.urls.static import static
+# from django.conf import settings
+# from django.conf.urls.static import static
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 # from django.contrib import admin
 # admin.autodiscover()
 
-urlpatterns = patterns('',
+urlpatterns = patterns(
+    '',
     # Examples:
     # url(r'^$', 'dashboard.views.home', name='home'),
     # url(r'^blog/', include('blog.urls')),
 
     # url(r'^admin/', include(admin.site.urls)),
+
     url(r'^auth/', include('dashboard_auth.urls', namespace="dashboard_auth")),
-    url(r'^project/(?P<optype>\w+)/$', 'dashboard.views.project', name='project'),
-    url(r'^project/$', 'dashboard.views.default', name='default'),
+
+    # project 为公司管理员界面
+    url(r'^project/(?P<optype>\w+)/$',
+        'dashboard.views.project',
+        name='project'),
+
+    url(r'^project/$',
+        'dashboard.views.project_default',
+        name='project_default'),
+
+    # admin 为系统管理员界面
+    url(r'^admin/(?P<optype>\w+)/$',
+        'dashboard.adminviews.admin',
+        name='admin'),
+
+    url(r'^admin/$',
+        'dashboard.adminviews.admin_default',
+        name='project_default'),
+
     url(r'^settings/$', 'dashboard.views.dashboard_settings', name='settings'),
     url(r'^helps/$', 'dashboard.views.helps', name='helps'),
 
@@ -24,7 +44,7 @@ urlpatterns = patterns('',
     url(r'^desktop/delete_server/$', 'dashboard.views.desktop_delete_server',
         name='desktop_delete_server'),
 
-    #users
+    # users
     url(r'^users/create_user/$', 'dashboard.views.users_create_user',
         name='users_create_user'),
     url(r'^users/active_user/$', 'dashboard.views.users_active_user',

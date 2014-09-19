@@ -1,7 +1,6 @@
 from keystoneclient.v3 import client as client_v3
 from dashboard import settings
 from django.utils import timezone
-from django.conf import settings
 
 AUTH_URL = settings.AUTH_URL
 
@@ -23,11 +22,12 @@ def authenticate(request=None, username=None, password=None,
                                   auth_url=auth_url,
                                   debug=settings.DEBUG)
     except Exception, e:
+        print e.message
         message = e.message
-        return {"result":False, "message":message}
-    return {"result":True,
-            "message":message,
-            "client":client}
+        return {"result": False, "message": message}
+    return {"result": True,
+            "message": message,
+            "client": client}
 
 
 def authenticate_with_project(project_id=None,
@@ -40,8 +40,9 @@ def authenticate_with_project(project_id=None,
                                   auth_url=auth_url)
     except Exception, e:
         message = e.message
-        return {"result":False, "message":message}
-    return {"result":True, "message":message, "client":client}
+        return {"result": False, "message": message}
+    return {"result": True, "message": message, "client": client}
+
 
 def check_expiration(expires_at):
     expiration = expires_at

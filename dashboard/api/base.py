@@ -1,6 +1,6 @@
 
 
-def url_for(catalog, service_type, endpoint_type="publicURL", region="RegionOne"):
+def url_for(catalog, service_type, endpoint_type="publicURL", region="regionOne"):
     service = get_service_from_catalog(catalog, service_type)
     if service:
         url = get_url_for_service(service,
@@ -12,7 +12,7 @@ def url_for(catalog, service_type, endpoint_type="publicURL", region="RegionOne"
     return None
 
 
-def is_service_enabled(catalog, service_type, service_name=None, region="RegionOne"):
+def is_service_enabled(catalog, service_type, service_name=None, region="regionOne"):
     service = get_service_from_catalog(catalog, service_type)
 
     if service:

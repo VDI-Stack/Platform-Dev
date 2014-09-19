@@ -1,65 +1,48 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
+
 {% load staticfiles %}
 
-{% load tags %}
-
-{% block title %} {% endblock %}
+{% block title %} {{tenant_name}} | overview {% endblock %}
 
 {% block css %}
 <style type="text/css">
-	/* nav bar */
-	body{ padding-top:50px; }
+  body{ font-family:"Microsoft Yahei","微软雅黑",Tahoma,Helvetica,Arial,sans-serif;}
 	
-	/* Sidebar navigation */
-	/* Hide for mobile, show later */
-	.sidebar {
-		display: none;
-	}
+  .sidebar { display: none; }
 	@media (min-width: 768px) {
-		.sidebar {
-			position: fixed;
-			top: 51px;
-			bottom: 0;
-			left: 0;
-			z-index: 1000;
-			display: block;
-			padding: 20px;
-			overflow-x: hidden;
-			overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
-			background-color: #f5f5f5;
-			border-right: 1px solid #eee;
+		.sidebar { 
+      position: fixed; top: 51px; bottom: 0; left: 0; z-index: 1000; display: block; padding: 20px; overflow-x: hidden; 
+      overflow-y: auto; background-color: #f5f5f5; 
 		}
 	}
-
-	/* Sidebar navigation */
 	.nav-sidebar {
-		margin-right: -21px; /* 20px padding + 1px border */
+		margin-right: -20px;
 		margin-bottom: 20px;
 		margin-left: -20px;
 	}
 	.nav-sidebar > li > a {
 		padding-right: 20px;
 		padding-left: 20px;
+    height:40px;
 	}
 	.nav-sidebar > .active > a {
 		color: #fff;
 		background-color: #428bca;
 	}
-
-
-	/*Main content*/
-	.main {
-		padding: 20px;
+	.messages{
+		position:fixed;
+		z-index:9999;
+		top:51px;
+		right:20px;
+		width:300px;
+		display:block;
 	}
-	@media (min-width: 768px) {
-		.main {
-			padding-right: 40px;
-			padding-left: 40px;
-		}
-	}
-	.main .page-header {
-		margin-top: 0;
-	}	
+	
+.table th{text-align:left; border:0 none; font-size:12px; padding:10px; font-weight:400;}
+.table thead th{ background-color:#eee; }
+.table-bordered th{ border-bottom:1px solid #e8e8e8; border-left:1px soslid #e8e8e8; }
+.table td{ padding:10px; font-weight:400; font-size:12px;}
+.table-bordered td{ border-bottom:1px solid #e8e8e8; border-left:1px solid #e8e8e8;}
 </style>
   {% block main_css %}
   {% endblock %}
@@ -104,16 +87,6 @@
           <a class="navbar-brand" href="#">Cloud-Open</a>
         </div>
         <div class="navbar-collapse collapse">
-        	<ul class="nav navbar-nav navbar-left text-center">
-            <li class="dropdown">
-              <a href="#" class="dropdown-header" data-toggle="dropdown">{{ current_project_name }} <b class="caret"></b></a>
-              <ul class="dropdown-menu text-center">
-                {% for project in project_list %}
-                <li><a href="{% url 'project' 'overview'%}?switch={{project.name}}">{{project.name}}</a></li>
-                {% endfor %}
-              </ul>
-            </li>
-          </ul>
           <ul class="nav navbar-nav navbar-right text-center">
           	<li class="dropdown">
             	<a  href="#" class="dropdown-header"  data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span> {{username}}<b class="caret"></b></a>
@@ -133,29 +106,42 @@
     </div>
     <!--nav end-->
     
-    
-    <div class="container-fluid">
-    	<div class="row">
-    		<!--sidebar  start-->
-      	<div class="col-sm-3 col-md-2 sidebar">
-       		<ul class="nav nav-sidebar">
-        		<li {% ifequal optype 'overview' %} class="active" {% endifequal %} ><a href="{% url 'project' 'overview' %}">概况</a></li>
-            <li {% ifequal optype 'desktop' %} class="active" {% endifequal %} ><a href="{% url 'project' 'desktop' %}">云桌面</a></li>
-            {% ifequal username 'admin' %}
-            <li {% ifequal optype 'users' %} class="active" {% endifequal %} ><a href="{% url 'project' 'users' %}">用户管理</a></li>				{% endifequal %}
+    <!--messages start-->
+    <div class="messages">
+    	{% for message in messages %}
+      <div {% if message.tags %} class="alert alert-{{ message.tags }} alert-dismissible"  role="alert" {% endif %} style="margin-bottom:5px;">
+      	<button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        {{ message }}
+			</div>
+      {%endfor%}
+    </div>
+    <!--messages end-->
+
+    <div class="container-fluid" style="padding-top:50px">
+      <div class="row">
+        <!--sidebar  start-->
+        <div class="col-sm-3 col-md-2 sidebar">
+          <ul class="nav nav-sidebar">
+            <li {% ifequal optype 'overview' %} class="active" {% endifequal %} ><a href="{% url 'admin' 'overview' %}"><span class="glyphicon glyphicon-phone"> 概况</a></li>
+            <li {% ifequal optype 'project' %} class="active" {% endifequal %} ><a href="{% url 'admin' 'project' %}"><span class="glyphicon glyphicon-phone"> 项目</a></li>
             
-            {% ifequal username 'admin' %}
-            <li {% ifequal optype 'tenants' %} class="active" {% endifequal %} ><a href="{% url 'project' 'tenants' %}">项目管理</a></li>				{% endifequal %}            
           </ul>
         </div>
-    		<!--sidebar  end-->
+        <!--sidebar  end-->
         
         <!--main  start-->
-        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-        	{% block main_content %}
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2">
+          {% block main_content %}
           {% endblock %}
         </div>
         <!--main  end-->
+      </div>
+    </div>
+
+    <div id="dialog1" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+        </div>
       </div>
     </div>
 {% endblock %}

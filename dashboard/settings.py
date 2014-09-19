@@ -31,7 +31,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = (
     # 'django.contrib.admin',
     'dashboard',
-    'django.contrib.auth',
+    # 'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
@@ -43,7 +43,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # 'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
@@ -53,18 +53,17 @@ ROOT_URLCONF = 'dashboard.urls'
 WSGI_APPLICATION = 'dashboard.wsgi.application'
 
 
-#AUTHENTICATION_BACKENDS = ('openstack_auth.backend.KeystoneBackend',)
-OPENSTACK_KEYSTONE_URL = "http://192.168.2.10:5000/v2.0"
+# AUTHENTICATION_BACKENDS = ('openstack_auth.backend.KeystoneBackend',)
 
 TEMPLATE_DIRS = (
     os.path.join(BASE_DIR, 'templates'),
-    #"/home/cloudopen/luxy/demodashboard/dashboard/templates",
+    # "/home/cloudopen/luxy/demodashboard/dashboard/templates",
 )
 
 # template loader
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
-    #'django.template.loaders.app_directories.Loader'
+    # 'django.template.loaders.app_directories.Loader'
 )
 
 # Database
@@ -72,8 +71,12 @@ TEMPLATE_LOADERS = (
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'HOST': 'localhost',
+        'NAME': 'demodashboard',
+        'PORT': '3036',
+        'USER': 'root',
+        'PASSWORD': 'cloudopen',
     }
 }
 
@@ -107,5 +110,6 @@ STATICFILES_DIRS = (
 STATIC_URL = '/static/'
 #STATIC_ROOT = "/home/cloudopen/luxy/demodashboard/dashboard/static"
 
-AUTH_URL = "http://192.168.2.10:5000/v3"
-AUTH_URL_V2 = "http://192.168.2.10:5000/v2.0"
+AUTH_URL = "http://10.10.102.10:5000/v3"
+AUTH_URL_V2 = "http://10.10.102.10:5000/v2.0"
+OPENSTACK_KEYSTONE_URL = "http://10.10.102.10:5000/v2.0"

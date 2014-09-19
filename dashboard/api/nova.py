@@ -16,12 +16,12 @@ def get_nova_client(username,
         client = nova_client(API_VERSION, username,
                              password, tenant_name,
                              auth_url)
-        return {"result":True,
-                "message":"success",
-                "client":client}
+        return {"result": True,
+                "message": "success",
+                "client": client}
     except Exception, e:
-        return {"result":False,
-                "message":e.message}
+        return {"result": False,
+                "message": e.message}
 
 
 class Server(object):
@@ -35,7 +35,7 @@ class Server(object):
         self.ips = self.get_ips()
         try:
             self.flavor = novaclient.flavors.get(server.flavor['id'])
-        except Exception,e:
+        except Exception, e:
             print e.message
             self.flavor = None
 
@@ -46,19 +46,24 @@ class Server(object):
         return self.server.name
 
     def get_image_name(self):
-        url = base.url_for(self.auth_ref['catalog'], 'image')
+        # url = base.url_for(self.auth_ref['catalog'], 'image')
+        url = base.url_for(self.auth_ref['serviceCatalog'], 'image')
         try:
-            c = glance_client('1', url, token=self.auth_ref['auth_token'])
+            # c = glance_client('1', url, token=self.auth_ref['auth_token'])
+            c = glance_client('1', url, token=self.auth_ref.auth_token)
             image = c.images.get(self.server.image['id'])
             return image.name
-        except Exception,e:
+        except Exception, e:
             print e
             return ""
 
         return ""
 
     def get_ips(self):
-        neutron_enable = base.is_service_enabled(self.auth_ref['catalog'], 'network')
+        # neutron_enable = \
+        #        base.is_service_enabled(self.auth_ref['catalog'], 'network')
+        neutron_enable = \
+            base.is_service_enabled(self.auth_ref['serviceCatalog'], 'network')
         ips = []
         if neutron_enable:
             # TODO: use neutron
@@ -73,12 +78,10 @@ class Server(object):
     def get_key_pair(self):
         return "keypair1"
 
-
     @property
     def flavor_name(self):
         if self.flavor:
             return self.flavor.name
-
 
     @property
     def vcpu(self):
@@ -98,11 +101,9 @@ class Server(object):
     def get_vNIC(self):
         return "asdfadf"
 
-
     @property
     def status(self):
         return self.server.status
-
 
     @property
     def power_status(self):
@@ -112,7 +113,6 @@ class Server(object):
             else:
                 return "Off"
         except Exception, e:
-            print e.message
             pass
         try:
             if self.server.__dict__['os-extended-status:power_state']\
@@ -130,7 +130,19 @@ class Server(object):
             starttime = self.server.__dict__["os-server-usage:launched_at"]
             if starttime:
                 import datetime
-                t = datetime.datetime.strptime(starttime,"%Y-%m-%dT%H:%M:%S.%f")
+                t = datetime.datetime.strptime(
+                    starttime, "%Y-%m-%dT%H:%M:%S.%f")
+                return t.strftime("%Y-%m-%d %H:%M:%S")
+            else:
+                return "-"
+        except Exception:
+            pass
+        try:
+            starttime = self.server.__dict__["OS-SRV-USG:launched_at"]
+            if starttime:
+                import datetime
+                t = datetime.datetime.strptime(
+                    starttime, "%Y-%m-%dT%H:%M:%S.%f")
                 return t.strftime("%Y-%m-%d %H:%M:%S")
             else:
                 return "-"

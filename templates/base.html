@@ -9,9 +9,13 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <!--<link rel="shortcut icon" href="../ico/favicon.png">-->
+    <!--[if lt IE 8]>
+    <script type="text/javascript" src="{% static "js/html5shiv.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/respond.js" %}"></script>
+    <![endif]-->      
     <title>{% block title %}Dashboard{% endblock %}</title>
     
-    <link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'bootstrap/css/bootstrap.css' %}" rel="stylesheet" type="text/css">
     
     {%block css%}
     <!--拓展模板中加入需要的css文件-->
@@ -23,9 +27,11 @@
     {% block body_content %}
     {% endblock %}
     
-    <script type="text/javascript" src="{% static "js/jquery-1.11.1.js" %}"></script>
-    <script type="text/javascript" src="{% static "bootstrap/js/bootstrap.js" %}"></script>
-    <script type="text/javascript" src="{% static "js/dashboard-common.js" %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery-1.11.1.js' %}"></script>
+    
+    <script type="text/javascript" src="{% static 'bootstrap/js/bootstrap.js' %}"></script>
+    
+    <script type="text/javascript" src="{% static 'js/dashboard-common.js' %}"></script>  
     
     {% block js %}
     <!--加入拓展模板中加入需要的js文件-->

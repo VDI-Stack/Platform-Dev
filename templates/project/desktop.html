@@ -1,0 +1,111 @@
+{% extends "project/base.html" %}
+
+{% block main_content %}
+<div class="page-intro">
+	<h1>云桌面 cloud desktop</h1>
+  <p> 用户下所有云桌面的列表，提供相应的方法对云桌面主机进行操作 </p>
+</div>
+
+
+
+<div class="page-content">
+  <div class="control-button">
+    <button id="btn-create-project" type="button" class="btn btn-primary"><span class="glyphicon glyphicon-plus"></span> 添加</button>
+    <button id="btn-create-project" type="button" class="btn btn-primary"><span class="glyphicon glyphicon-off"></span> 暂停/启动</button>
+    <button id="btn-create-project" type="button" class="btn btn-primary"><span class="glyphicon glyphicon-minus"></span> 删除</button>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th style="min-width:20px;" class="multi_select_column"><input id="selectusers" type="checkbox" class="table-row-multi-select"></th>
+          <th>桌面名</th>
+          <th>镜像名称</th>
+          <th>ip地址</th>
+          <th>key pair</th>
+          <th>配置</th>
+          <th>状态</th>
+          <th>电源状态</th>
+          <th>开始时间</th>
+        </tr>
+      </thead>
+      <tbody id="selectbody">
+        <form id="form2" name="form2">
+          {%for server in servers%}
+          <tr>
+            <td class="multi_select_column">
+              <input class="table-row-multi-select" name="selectuser" type="checkbox" value="{{server.id}}">
+            </td>
+            <td>{{server.name}}</td>
+            <td>{{server.image_name}}</td>
+            <td><ul class="list-inline">{%for ip in server.ips %}<li>{{ ip }}</li>{% endfor %}</ul></td>
+            <td>-</td>
+            <td>
+              <ul class="list-inline">
+                <li>{{server.flavor_name}}</li>
+                <li>{{server.vcpu}}</li>
+                <li>{{server.vmem}}</li>
+                <li>{{server.vdisk}}</li>
+              </ul>
+            </td>
+            <td>{{server.status}}</td>
+            <td>{{server.power_status}}</td>
+            <td>{{server.start_time}}</td>
+          </tr>
+          {%endfor%}
+        </form>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+{% endblock %}
+
+{% block main_js %}
+<script type="text/javascript">
+$("#selectusers").click(function(e) {
+	if ($("#selectusers")[0].checked){
+		$("#selectbody .table-row-multi-select").each(
+		function(index){
+			this.checked = true;
+		})
+	}else{
+		$("#selectbody .table-row-multi-select").each(
+			function(index){
+				this.checked = false;
+		})	
+	}  
+});
+
+$("#btn-server-stop").click( function(){
+		$.ajax({
+		url:"{% url 'desktop_delete_server'%}",
+		type:"POST",
+		dataType:"json",
+		data:$('#form2').serialize(),
+		success: function(data){ 
+			alert(data.retval+data.data);
+			//$("#user-create-modal").modal('hide');
+			//window.location.reload();
+		},
+		error: function (jqXHR, textStatus, errorThrown ){
+			//alert(errorThrown)
+		},
+	});
+});
+</script>
+{% endblock %}
+
+
+{% block main_css %}
+<style type="text/css">
+.page-intro{ background-color:#eee; margin-left:-15px; margin-right:-15px; padding-top:20px;}
+.page-intro h1{ font-size:22px; color:#1f90c8; padding-left:20px; }
+.page-intro p{ font-size:14px; color:#000; padding-left:20px; padding-top:10px; padding-bottom:20px;}
+
+.page-content{ margin-left:-15px; margin-right:-15px; margin-top:20px; padding-left:40px; padding-right:40px; }
+.control-button{ margin-bottom:10px;}
+
+</style>
+{% endblock %}

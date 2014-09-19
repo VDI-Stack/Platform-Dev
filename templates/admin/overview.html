@@ -1,0 +1,42 @@
+<link href="../static/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+{% extends "admin/base.html" %}
+
+{% block main_content %}
+<div class="page-intro">
+	<h1>概况 overview</h1>
+  <p> 描述当前的各个服务的状态 </p>
+</div>
+
+<div class="row">
+	<div class="col-md-3 resource-summary-item">
+  	<p><strong>0</strong></p>
+    <h5><span class="glyphicon glyphicon-phone"></span> 项目</h5> 
+  </div>
+  <div class="col-md-3 resource-summary-item">
+  	<p><strong>0</strong></p>
+    <h5><span class="glyphicon glyphicon-phone"></span> 内存</h5> 
+  </div>
+  <div class="col-md-3 resource-summary-item">
+  	<p><strong>0</strong></p>
+    <h5><span class="glyphicon glyphicon-phone"></span> 硬盘</h5>   
+  </div>
+  <div class="col-md-3 resource-summary-item">
+  	<p><strong>0</strong></p>
+    <h5><span class="glyphicon glyphicon-phone"></span> 私有网络</h5>   
+  </div>
+</div>
+
+{% endblock %}
+
+{% block main_css %}
+<style type="text/css">
+.resource-summary-item p{ text-align:center; font-size:60px; color:#1f90c8; font-family:Arial, Helvetica, sans-serif; margin-bottom:0;}
+.resource-summary-item h5{ text-align:center; color:#777; margin-top:0px; margin-bottom:20px; font-family: "Microsoft Yahei","微软雅黑",Tahoma,Helvetica,Arial,sans-serif;}
+
+.resource-summary-item:hover{background-color:#9FF;}
+
+.page-intro{ background-color:#eee; margin-left:-15px; margin-right:-15px; padding-top:20px;}
+.page-intro h1{ font-size:22px; color:#1f90c8; padding-left:20px; }
+.page-intro p{ font-size:14px; color:#000; padding-left:20px; padding-top:10px; padding-bottom:20px;}
+</style>
+{% endblock %}
