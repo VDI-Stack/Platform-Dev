@@ -76,7 +76,7 @@ DATABASES = {
         'NAME': 'demodashboard',
         'PORT': '3036',
         'USER': 'root',
-        'PASSWORD': 'cloudopen',
+        'PASSWORD': '19900311',
     }
 }
 

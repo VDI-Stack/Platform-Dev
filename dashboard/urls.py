@@ -38,6 +38,19 @@ urlpatterns = patterns(
     url(r'^settings/$', 'dashboard.views.dashboard_settings', name='settings'),
     url(r'^helps/$', 'dashboard.views.helps', name='helps'),
 
+
+    #url(r'^keystone/get_tenant_list/$', 'dashboard.views.get_tenant_list', name='get_tenant_list'),
+    #url(r'^nova/get_flavor_list/$', 'dashboard.views.get_flavor_list', name='get_flavor_list'),
+    #url(r'^nova/get_server_list/$', 'dashboard.views.get_server_list', name='get_server_list'),
+    #url(r'^nova/create_server/$', 'dashboard.views.create_server', name='create_server'),
+    #url(r'^nova/delete_server/$', 'dashboard.views.delete_server', name='delete_server'),
+
+    ##################################
+    # 所有ajax请求都通过api接口进行操作
+    ##################################
+    url(r'^api/admin/create_project/', ''),
+
+
     # desktop
     url(r'^desktop/create_server/$', 'dashboard.views.desktop_create_server',
         name='desktop_create_server'),
@@ -57,12 +70,6 @@ urlpatterns = patterns(
         name='tenants_create_tenant'),
     url(r'^tenants/delete_tenant/$', 'dashboard.views.tenants_delete_tenant',
         name='tenants_delete_tenant'),
-
-    #url(r'^keystone/get_tenant_list/$', 'dashboard.views.get_tenant_list', name='get_tenant_list'),
-    #url(r'^nova/get_flavor_list/$', 'dashboard.views.get_flavor_list', name='get_flavor_list'),
-    #url(r'^nova/get_server_list/$', 'dashboard.views.get_server_list', name='get_server_list'),
-    #url(r'^nova/create_server/$', 'dashboard.views.create_server', name='create_server'),
-    #url(r'^nova/delete_server/$', 'dashboard.views.delete_server', name='delete_server'),
 #)
 #) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 ) + staticfiles_urlpatterns()

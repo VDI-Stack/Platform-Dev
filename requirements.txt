@@ -1,0 +1,9 @@
+# Packages the projects needs
+
+Django>=1.5,<1.7
+python-keystoneclient
+python-cinderclient
+python-glanceclient
+python-neutronclient
+python-novaclient
+MySQL-python
